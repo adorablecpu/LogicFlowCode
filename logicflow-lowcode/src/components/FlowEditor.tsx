@@ -11,6 +11,14 @@ class InputDataModel extends RectNodeModel {
     this.width = 80;
     this.height = 40;
   }
+  setAttributes() {
+    super.setAttributes && super.setAttributes();
+    const input = this.properties.input ? `输入:${this.properties.input}` : '数据输入';
+    const minWidth = 80;
+    const padding = 32;
+    // 估算宽度：每个字符 12px
+    this.width = Math.max(minWidth, input.length * 12 + padding);
+  }
   getNodeStyle() {
     const style = super.getNodeStyle();
     style.fill = '#e6f7ff';
