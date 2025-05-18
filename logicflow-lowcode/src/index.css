@@ -1,68 +1,74 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  font-family: 'Segoe UI', sans-serif; /* 更通用的字体栈 */
+  line-height: 1.6; /* 增加行高提升可读性 */
   font-weight: 400;
-
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
+  color: rgba(255, 255, 255, 0.9); /* 提升文本对比度 */
   background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
   font-weight: 500;
   color: #646cff;
-  text-decoration: inherit;
+  text-decoration: underline; /* 显示下划线明确交互 */
 }
 a:hover {
-  color: #535bf2;
+  color: #4a4eff; /* 加深悬停颜色 */
+  text-decoration: none; /* 悬停时移除下划线 */
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
   min-height: 100vh;
+  background-color: #1a1a1a; /* 统一背景色 */
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: 2.8em; /* 缩小标题字体 */
+  line-height: 1.2;
+  margin-bottom: 1.5em; /* 添加底部间距 */
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+  border-radius: 10px; /* 增大圆角 */
+  border: none; /* 移除边框 */
+  padding: 0.8em 1.6em; /* 增大内边距 */
+  font-size: 1.1em;
+  background-color: #3b3b3b; /* 提亮背景色 */
+  color: white; /* 明确文本颜色 */
+  transition: background-color 0.3s, transform 0.2s; /* 添加过渡效果 */
 }
 button:hover {
-  border-color: #646cff;
+  background-color: #646cff; /* 悬停时变色 */
+  transform: translateY(-2px); /* 添加微动画提升反馈 */
 }
-button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 3px solid #646cff; /* 优化聚焦样式 */
+  outline-offset: 2px;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
-    background-color: #ffffff;
+    background-color: #f0f0f0; /* 浅色模式背景色更柔和 */
   }
-  a:hover {
-    color: #747bff;
+  .card {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05); /* 浅色模式阴影更浅 */
   }
   button {
-    background-color: #f9f9f9;
+    background-color: #f5f5f5;
+    color: #333;
+  }
+}
+
+/* 新增响应式媒体查询 */
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem; /* 移动端进一步减少内边距 */
+  }
+  h1 {
+    font-size: 2.2em; /* 移动端标题更小 */
+  }
+  .card {
+    padding: 1.2em;
   }
 }

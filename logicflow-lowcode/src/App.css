@@ -1,21 +1,21 @@
 #root {
-  max-width: 1280px;
+  max-width: 100%; /* 移除固定最大宽度，适应全屏幕 */
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.5rem; /* 减少内边距，适配移动端 */
   text-align: center;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
+  height: 4em; /* 缩小 Logo 高度 */
+  padding: 1em; /* 减少内边距 */
   will-change: filter;
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 1.5em #646cffaa); /* 弱化阴影强度 */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 1.5em #61dafbaa);
 }
 
 @keyframes logo-spin {
@@ -29,14 +29,18 @@
 
 @media (prefers-reduced-motion: no-preference) {
   a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+    animation: none; /* 移除默认旋转动画 */
   }
 }
 
 .card {
-  padding: 2em;
+  padding: 1.8em; /* 减少卡片内边距 */
+  border-radius: 12px; /* 添加圆角 */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* 添加轻阴影增强层次 */
+  margin: 1.5em 0; /* 添加上下间距 */
 }
 
 .read-the-docs {
-  color: #888;
+  color: #666; /* 加深文本颜色提升可读性 */
+  margin-top: 1em; /* 添加顶部间距 */
 }
