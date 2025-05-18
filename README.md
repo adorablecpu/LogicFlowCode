@@ -26,27 +26,43 @@ pnpm：高效的包管理工具，类似 npm/yarn，但更快更省空间。
 节点模型层：如 InputDataModel、SinFunctionModel，负责节点的数据和属性管理。
 节点视图层：如 InputDataView，负责节点的渲染和样式。
 工具/服务层：如 ECharts 负责数据可视化，LogicFlow 负责流程图引擎。
-这种结构其实是前端领域常见的“分层+组件化”混合模式，有利于代码维护和扩展，但不属于严格意义上的后端分层架构。
+这种结构其实是前端领域常见的"分层+组件化"混合模式，有利于代码维护和扩展，但不属于严格意义上的后端分层架构。
 
 三、项目结构层次
 
+```
 logicflow-lowcode/
-├── node_modules/           # 依赖包
+├── node_modules/           # 依赖包（已被 .gitignore 忽略，不上传）
 ├── public/                 # 静态资源
+│   └── vite.svg
 ├── src/                    # 源码目录
-│   ├── components/
+│   ├── components/         # 业务组件
+│   │   ├── nodes/          # 节点组件
+│   │   ├── edges/          # 连线组件
+│   │   ├── panels/         # 面板组件
+│   │   └── common/         # 通用组件
 │   │   └── FlowEditor.tsx  # 主流程编辑器组件，核心逻辑
 │   ├── assets/             # 静态资源（如图片、样式等）
+│   │   └── react.svg
 │   ├── App.tsx             # 应用入口
 │   ├── main.tsx            # React 入口
 │   ├── index.css           # 全局样式
-│   └── ...                 # 其他配置
+│   └── App.css             # 局部样式
 ├── package.json            # 项目依赖和脚本
 ├── pnpm-lock.yaml          # pnpm锁定文件
 ├── tsconfig.json           # TypeScript 配置
+├── tsconfig.node.json      # TypeScript Node配置
+├── tsconfig.app.json       # TypeScript App配置
 ├── vite.config.ts          # Vite 配置
+├── eslint.config.js        # ESLint 配置
+├── index.html              # HTML模板
 └── .gitignore              # Git 忽略文件
-
+├── hooks/              # 自定义 Hooks
+├── store/              # 状态管理
+├── services/           # 服务层
+├── utils/              # 工具函数
+└── types/              # 类型定义
+```
 
 四、主要功能与实现方法
 

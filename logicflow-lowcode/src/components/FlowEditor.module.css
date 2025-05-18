@@ -1,0 +1,137 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f0f2f5;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f1f1f;
+  margin: 0;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 240px;
+  padding: 16px;
+  background-color: #fff;
+  border-right: 1px solid #f0f0f0;
+  overflow-y: auto;
+}
+
+.nodeList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nodeItem {
+  padding: 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nodeItem:hover {
+  background-color: #f5f5f5;
+  border-color: #d9d9d9;
+}
+
+.nodeItem.active {
+  background-color: #e6f7ff;
+  border-color: #1890ff;
+}
+
+.editor {
+  flex: 1;
+  position: relative;
+  background-color: #fff;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.preview {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 400px;
+  height: 300px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.codePanel {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 400px;
+  max-height: 300px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.codeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.codeTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f1f1f;
+  margin: 0;
+}
+
+.codeContent {
+  padding: 16px;
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1f1f1f;
+  background-color: #fafafa;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.helpButton {
+  color: #1890ff;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.helpButton:hover {
+  color: #40a9ff;
+} 

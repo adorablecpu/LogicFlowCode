@@ -1,8 +1,16 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, useCallback, useEffect } from 'react';
 import LogicFlow, { RectNode, RectNodeModel } from '@logicflow/core';
-import '@logicflow/core/es/index.css';
+import '@logicflow/core/dist/style/index.css';
 import { h } from '@logicflow/core';
 import * as echarts from 'echarts';
+import { message, Button, Tooltip } from 'antd';
+// import 'antd/dist/antd.css';
+import HelpModal from './HelpModal';
+import { QuestionCircleOutlined, CodeOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { logger } from '../utils/logger';
+import styles from './FlowEditor.module.css';
+import { NODE_TYPES, NODE_CONFIGS, TRANSFORM_TYPES, FILTER_CONDITIONS, STAT_TYPES } from '../constants/nodes';
+import type { NodeType, GraphData, NodeProperties } from '../types';
 
 // 自定义数据输入节点Model
 class InputDataModel extends RectNodeModel {
@@ -152,173 +160,539 @@ class CurveOutputView extends RectNode {
   }
 }
 
-const FlowEditor = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const lfRef = useRef<any>(null);
-  const [code, setCode] = useState('');
-  const [output, setOutput] = useState<number[]>([]);
-  const chartRef = useRef<HTMLDivElement>(null);
+// 数据转换节点Model
+class TransformDataModel extends RectNodeModel {
+  initNodeData(data: any) {
+    super.initNodeData(data);
+    this.width = 80;
+    this.height = 40;
+  }
+  getNodeStyle() {
+    const style = super.getNodeStyle();
+    style.fill = '#fffbe6';
+    style.stroke = '#faad14';
+    style.radius = 8;
+    return style;
+  }
+}
+// 数据转换节点View
+class TransformDataView extends RectNode {
+  getShape() {
+    const { x, y, width, height } = this.props.model;
+    return h(
+      'g',
+      {},
+      [
+        h('rect', {
+          x: x - width / 2,
+          y: y - height / 2,
+          width,
+          height,
+          fill: '#fffbe6',
+          stroke: '#faad14',
+          rx: 8,
+          ry: 8,
+        }),
+        h('text', {
+          x,
+          y,
+          textAnchor: 'middle',
+          dominantBaseline: 'middle',
+          fontSize: 14,
+          fill: '#faad14',
+        }, '数据转换')
+      ]
+    );
+  }
+}
 
-  useLayoutEffect(() => {
-    if (containerRef.current) {
-      const lf = new LogicFlow({
-        container: containerRef.current,
-        grid: true,
-      });
-      lf.register({
-        type: 'inputData',
-        view: InputDataView,
-        model: InputDataModel,
-      });
-      lf.register({
-        type: 'sinFunction',
-        view: SinFunctionView,
-        model: SinFunctionModel,
-      });
-      lf.register({
-        type: 'curveOutput',
-        view: CurveOutputView,
-        model: CurveOutputModel,
-      });
-      lf.render({ nodes: [], edges: [] });
-      lfRef.current = lf;
+// 数据过滤节点Model
+class FilterDataModel extends RectNodeModel {
+  initNodeData(data: any) {
+    super.initNodeData(data);
+    this.width = 80;
+    this.height = 40;
+  }
+  getNodeStyle() {
+    const style = super.getNodeStyle();
+    style.fill = '#f9f0ff';
+    style.stroke = '#722ed1';
+    style.radius = 8;
+    return style;
+  }
+}
+// 数据过滤节点View
+class FilterDataView extends RectNode {
+  getShape() {
+    const { x, y, width, height } = this.props.model;
+    return h(
+      'g',
+      {},
+      [
+        h('rect', {
+          x: x - width / 2,
+          y: y - height / 2,
+          width,
+          height,
+          fill: '#f9f0ff',
+          stroke: '#722ed1',
+          rx: 8,
+          ry: 8,
+        }),
+        h('text', {
+          x,
+          y,
+          textAnchor: 'middle',
+          dominantBaseline: 'middle',
+          fontSize: 14,
+          fill: '#722ed1',
+        }, '数据过滤')
+      ]
+    );
+  }
+}
 
-      // 监听节点点击，弹窗输入参数
-      lf.on('node:click', ({ data }) => {
-        if (data.type === 'inputData') {
-          const value = window.prompt('请输入数据（如1,2,3,4 或表达式）：', data.properties?.input || '');
-          if (value !== null) {
-            lf.setProperties(data.id, { input: value });
-            // 不再调用updateText，直接依赖自定义View的动态渲染
-          }
-        } else if (data.type === 'sinFunction') {
-          window.alert('sin函数节点暂不需要参数，后续可扩展');
-        } else if (data.type === 'curveOutput') {
-          window.alert('曲线输出节点暂不需要参数，后续可扩展');
+// 数据统计节点Model
+class StatsDataModel extends RectNodeModel {
+  initNodeData(data: any) {
+    super.initNodeData(data);
+    this.width = 80;
+    this.height = 40;
+  }
+  getNodeStyle() {
+    const style = super.getNodeStyle();
+    style.fill = '#e6fffb';
+    style.stroke = '#13c2c2';
+    style.radius = 8;
+    return style;
+  }
+}
+// 数据统计节点View
+class StatsDataView extends RectNode {
+  getShape() {
+    const { x, y, width, height } = this.props.model;
+    return h(
+      'g',
+      {},
+      [
+        h('rect', {
+          x: x - width / 2,
+          y: y - height / 2,
+          width,
+          height,
+          fill: '#e6fffb',
+          stroke: '#13c2c2',
+          rx: 8,
+          ry: 8,
+        }),
+        h('text', {
+          x,
+          y,
+          textAnchor: 'middle',
+          dominantBaseline: 'middle',
+          fontSize: 14,
+          fill: '#13c2c2',
+        }, '数据统计')
+      ]
+    );
+  }
+}
+
+// 添加节点处理函数
+const processNode = (nodeType: NodeType, input: number[], properties: NodeProperties): number[] => {
+  switch (nodeType) {
+    case NODE_TYPES.INPUT:
+      return input;
+    case NODE_TYPES.FUNCTION:
+      return input.map(x => Math.sin(x));
+    case NODE_TYPES.TRANSFORM: {
+      const { transformType, scale } = properties;
+      const numScale = scale !== undefined ? Number(scale) : 1;
+      if (isNaN(numScale)) return input;
+      // Compare directly with constants
+      switch (transformType) {
+        case TRANSFORM_TYPES.COS:
+          return input.map(x => Math.cos(x) * numScale);
+        case TRANSFORM_TYPES.TAN:
+          return input.map(x => Math.tan(x) * numScale);
+        case TRANSFORM_TYPES.EXP:
+          return input.map(x => Math.exp(x) * numScale);
+        case TRANSFORM_TYPES.LOG:
+          return input.map(x => Math.log(x) * numScale);
+        default:
+          logger.warn('Unsupported transform type in processNode:', { transformType });
+          return input;
+      }
+    }
+    case NODE_TYPES.FILTER: {
+      const { condition, threshold } = properties;
+       const numThreshold = Number(threshold);
+       if (isNaN(numThreshold)) return input; // Return original if threshold is not a number
+      return input.filter(x => {
+        // Compare directly with constants
+        switch (condition) {
+         // @ts-ignore
+         case FILTER_CONDITIONS.GREATER_THAN: return x > numThreshold;
+         // @ts-ignore
+         case FILTER_CONDITIONS.LESS_THAN: return x < numThreshold;
+         // @ts-ignore
+         case FILTER_CONDITIONS.GREATER_EQUAL: return x >= numThreshold;
+         // @ts-ignore
+         case FILTER_CONDITIONS.LESS_EQUAL: return x <= numThreshold;
+         // @ts-ignore
+         case FILTER_CONDITIONS.EQUAL: return x === numThreshold;
+          default: 
+            logger.warn('Unsupported filter condition in processNode:', { condition });
+            return true;
         }
       });
     }
-  }, []);
-
-  // 按钮点击事件，添加数据输入节点
-  const handleAddInputNode = () => {
-    const lf = lfRef.current;
-    console.log('lfRef.current', lf);
-    if (lf) {
-      lf.addNode({
-        type: 'inputData',
-        x: 200,
-        y: 150,
-      });
-      console.log('已调用addNode');
-    } else {
-      console.log('lfRef.current不存在');
+    case NODE_TYPES.STATS: {
+      const { statType } = properties;
+      // Compare directly with constants
+      switch (statType) {
+        case STAT_TYPES.MEAN:
+          return input.length > 0 ? [input.reduce((a, b) => a + b, 0) / input.length] : [];
+        case STAT_TYPES.SUM:
+          return [input.reduce((a, b) => a + b, 0)];
+        case STAT_TYPES.MAX:
+          return [Math.max(...input)];
+        case STAT_TYPES.MIN:
+          return [Math.min(...input)];
+        default:
+          logger.warn('Unsupported stat type in processNode:', { statType });
+          return []; // Returning empty array for unsupported stats type
+      }
     }
-  };
+    case NODE_TYPES.OUTPUT:
+      return input;
+    default:
+      logger.error('Unknown node type in processNode:', { nodeType });
+      return input;
+  }
+};
 
-  // 添加sin函数节点
-  const handleAddSinNode = () => {
-    const lf = lfRef.current;
-    if (lf) {
-      lf.addNode({
-        type: 'sinFunction',
-        x: 350,
-        y: 200,
+const FlowEditor = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [lf, setLf] = useState<LogicFlow | null>(null);
+  const [code, setCode] = useState<string>('');
+  const [showHelp, setShowHelp] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<NodeType | null>(null);
+  const [output, setOutput] = useState<number[]>([]);
+  const [hasChart, setHasChart] = useState(false);
+
+  useLayoutEffect(() => {
+    if (containerRef.current && !lf) {
+      const logicflow = new LogicFlow({
+        container: containerRef.current,
+        grid: true,
+        nodeTextEdit: false,
+        edgeTextEdit: false,
+      });
+
+      // 注册节点
+      logicflow.register({
+        type: `${NODE_TYPES.INPUT}-1`,
+        view: InputDataView,
+        model: InputDataModel,
+      });
+      logicflow.register({
+        type: `${NODE_TYPES.FUNCTION}-1`,
+        view: SinFunctionView,
+        model: SinFunctionModel,
+      });
+      logicflow.register({
+        type: `${NODE_TYPES.OUTPUT}-1`,
+        view: CurveOutputView,
+        model: CurveOutputModel,
+      });
+
+      // Register new nodes
+      logicflow.register({
+        type: `${NODE_TYPES.TRANSFORM}-1`,
+        view: TransformDataView,
+        model: TransformDataModel,
+      });
+      logicflow.register({
+        type: `${NODE_TYPES.FILTER}-1`,
+        view: FilterDataView,
+        model: FilterDataModel,
+      });
+      logicflow.register({
+        type: `${NODE_TYPES.STATS}-1`,
+        view: StatsDataView,
+        model: StatsDataModel,
+      });
+
+      logicflow.render();
+      setLf(logicflow);
+
+      // 监听节点点击，弹窗输入参数
+      logicflow.on('node:click', ({ data }) => {
+        const nodeType = data.type.split('-')[0] as NodeType; // Type assertion here
+
+        if (nodeType === NODE_TYPES.INPUT) {
+          const value = window.prompt('请输入数据（如1,2,3,4,5,6）：', data.properties?.input || '');
+          if (value !== null) {
+            if (validateInput(value)) {
+              logicflow.setProperties(data.id, { input: value });
+            } else {
+              message.error('输入必须是数字，用逗号分隔');
+            }
+          }
+        } else if (nodeType === NODE_TYPES.TRANSFORM) {
+           const currentTransformType = data.properties?.transformType || TRANSFORM_TYPES.COS;
+           const currentScale = data.properties?.scale !== undefined ? data.properties.scale : 1;
+           // Fixed template string syntax
+           const newTransformType = window.prompt(`请输入转换类型 (${Object.values(TRANSFORM_TYPES).join(', ')})`, currentTransformType);
+           if (newTransformType !== null && (Object.values(TRANSFORM_TYPES) as string[]).includes(newTransformType)) {
+             const validTransformType = newTransformType as keyof typeof TRANSFORM_TYPES; // Type assertion after validation
+             const newScale = window.prompt('请输入缩放比例：', currentScale);
+             if (newScale !== null && !isNaN(Number(newScale))) {
+                 logicflow.setProperties(data.id, { transformType: validTransformType, scale: Number(newScale) });
+             } else if (newScale === null) {
+                  logicflow.setProperties(data.id, { transformType: validTransformType }); // User cancelled setting scale
+             } else {
+                 message.error('缩放比例必须是数字');
+             }
+           } else if (newTransformType !== null) {
+              message.error(`无效的转换类型，请输入以下之一：${Object.values(TRANSFORM_TYPES).join(', ')}`);
+           }
+        } else if (nodeType === NODE_TYPES.FILTER) {
+           const currentCondition = data.properties?.condition || FILTER_CONDITIONS.GREATER_THAN;
+           const currentThreshold = data.properties?.threshold !== undefined ? data.properties.threshold : 0;
+           // Fixed template string syntax
+           const newCondition = window.prompt(`请输入过滤条件 (${Object.values(FILTER_CONDITIONS).join(', ')})`, currentCondition);
+
+           if (newCondition !== null && (Object.values(FILTER_CONDITIONS) as string[]).includes(newCondition)) {
+             const validCondition = newCondition as keyof typeof FILTER_CONDITIONS;
+             const newThreshold = window.prompt('请输入阈值:', currentThreshold);
+             if (newThreshold !== null && !isNaN(Number(newThreshold))) {
+                logicflow.setProperties(data.id, { condition: validCondition, threshold: Number(newThreshold) });
+             } else if (newThreshold === null) {
+                 logicflow.setProperties(data.id, { condition: validCondition });
+             } else {
+                 message.error('阈值必须是数字');
+             }
+           } else if (newCondition !== null) {
+              message.error(`无效的过滤条件，请输入以下之一：${Object.values(FILTER_CONDITIONS).join(', ')}`);
+           }
+        } else if (nodeType === NODE_TYPES.STATS) {
+           const currentStatType = data.properties?.statType || STAT_TYPES.MEAN;
+           // Fixed template string syntax
+           const newStatType = window.prompt(`请输入统计类型 (${Object.values(STAT_TYPES).join(', ')})`, currentStatType);
+           if (newStatType !== null && (Object.values(STAT_TYPES) as string[]).includes(newStatType)) {
+             const validStatType = newStatType as keyof typeof STAT_TYPES;
+             logicflow.setProperties(data.id, { statType: validStatType });
+           } else if (newStatType !== null) {
+             message.error(`无效的统计类型，请输入以下之一：${Object.values(STAT_TYPES).join(', ')}`);
+           }
+        }
+        // For other node types like FUNCTION and OUTPUT, no properties to configure via click for now
       });
     }
-  };
+  }, [lf]);
 
-  // 添加曲线输出节点
-  const handleAddCurveNode = () => {
-    const lf = lfRef.current;
-    if (lf) {
-      lf.addNode({
-        type: 'curveOutput',
-        x: 500,
-        y: 200,
-      });
+  useEffect(() => {
+    let chart: echarts.ECharts | null = null;
+    if (chartRef.current && output.length > 0) {
+      logger.info('Attempting to initialize ECharts in useEffect...');
+      try {
+        chart = echarts.init(chartRef.current);
+        logger.info('ECharts instance initialized successfully in useEffect.', { disposed: chart.isDisposed() });
+        const option = {
+          title: { text: '数据处理结果' },
+          tooltip: { trigger: 'axis' },
+          xAxis: { type: 'category', data: output.map((_, i) => i + 1) },
+          yAxis: { type: 'value' },
+          series: [{ data: output, type: 'line', smooth: true }]
+        };
+        logger.info('Attempting to set ECharts option in useEffect...');
+        chart.setOption(option);
+        logger.info('ECharts option set successfully in useEffect.');
+      } catch (chartError: any) {
+        logger.error('Error during ECharts initialization or setOption in useEffect:', { error: chartError.message });
+      }
     }
-  };
 
-  // 生成JS代码
-  const generateCode = () => {
-    const lf = lfRef.current;
+    return () => {
+      if (chart && !chart.isDisposed()) {
+        chart.dispose();
+        logger.info('ECharts instance disposed in useEffect cleanup.');
+      }
+    };
+  }, [chartRef.current, output]);
+
+  const handleAddNode = useCallback((nodeType: NodeType) => {
     if (!lf) return;
-    const data = lf.getGraphData();
-    // 简单处理：只支持一条主线
-    // 1. 找到数据输入节点
-    const inputNode = data.nodes.find((n: any) => n.type === 'inputData');
-    // 2. 找到sin函数节点
-    const sinNode = data.nodes.find((n: any) => n.type === 'sinFunction');
-    // 3. 找到曲线输出节点
-    const outputNode = data.nodes.find((n: any) => n.type === 'curveOutput');
-    if (!inputNode || !sinNode || !outputNode) {
-      setCode('// 请确保流程图包含数据输入、sin函数和曲线输出节点');
+    setSelectedNode(nodeType);
+    const config = NODE_CONFIGS[nodeType];
+    lf.addNode({
+      type: `${nodeType}-1`,
+      x: 200,
+      y: 150,
+      properties: config.properties
+    });
+  }, [lf, selectedNode]);
+
+  const validateInput = (input: string): boolean => {
+    const numbers = input.split(',').map(n => n.trim());
+    return numbers.every(n => !isNaN(Number(n)));
+  };
+
+  const buildProcessChain = (nodes: GraphData['nodes'], edges: GraphData['edges']): GraphData['nodes'] => {
+    const chain: GraphData['nodes'] = [];
+    let currentNode = nodes.find(n => n.type === `${NODE_TYPES.INPUT}-1`);
+    
+    while (currentNode) {
+      chain.push(currentNode);
+      const nextEdge = edges.find(e => e.sourceNodeId === currentNode?.id);
+      if (!nextEdge) break;
+      currentNode = nodes.find(n => n.id === nextEdge.targetNodeId);
+    }
+    
+    return chain;
+  };
+
+  const generateCode = useCallback(() => {
+    if (!lf) return;
+    const { nodes, edges } = lf.getGraphData() as GraphData;
+    if (edges.length === 0) {
+      message.error('请连接节点');
       return;
     }
-    // 4. 读取参数
-    const input = inputNode.properties?.input || '1,2,3,4,5,6';
-    // 生成代码，自动转为数字数组
-    const codeStr = `// 自动生成的JS代码\nconst input = "${input}".split(',').map(Number);\nconst output = input.map(x => Math.sin(x));\nconsole.log('sin曲线输出:', output);`;
-    setCode(codeStr);
-  };
 
-  // 运行并绘图
-  const runAndDraw = () => {
-    if (!code) return;
-    let output: number[] = [];
-    try {
-      // 构造安全的沙箱函数
-      // eslint-disable-next-line no-new-func
-      const run = new Function(`
-      ${code}
-      return typeof output !== 'undefined' ? output : [];
-      `);
-      output = run();
-      if (!Array.isArray(output)) output = [];
-    } catch (e) {
-      output = [];
+    const inputNode = nodes.find(node => node.type === `${NODE_TYPES.INPUT}-1`);
+    if (!inputNode) {
+      message.error('请添加数据输入节点');
+      return;
     }
-    setOutput(output);
-    // 绘制ECharts
-    setTimeout(() => {
-      if (chartRef.current) {
-        echarts.dispose(chartRef.current); // 先销毁旧实例
-        const chart = echarts.init(chartRef.current);
-        chart.setOption({
-          title: { text: 'sin曲线输出', left: 'center' },
-          tooltip: {},
-          xAxis: { type: 'category', data: output.map((_, i) => i + 1) },
-          yAxis: {},
-          series: [{
-            name: 'sin(x)',
-            type: 'line',
-            smooth: true,
-            data: output,
-            showSymbol: false,
-            lineStyle: { width: 3 }
-          }]
-        });
-        chart.resize(); // 强制刷新
+
+    const input = inputNode.properties?.input || '1,2,3,4,5,6';
+    if (!validateInput(input)) {
+      message.error('输入数据格式不正确');
+      return;
+    }
+
+    let codeStr = `// 自动生成的JS代码
+const input = "${input}".split(',').map(Number);
+let data = input;\n`;
+
+    const processChain = buildProcessChain(nodes, edges);
+    processChain.forEach(node => {
+      const nodeType = node.type.split('-')[0] as NodeType;
+      const properties = node.properties || {};
+      codeStr += `// 处理 ${NODE_CONFIGS[nodeType].text}
+data = processNode('${nodeType}', data, ${JSON.stringify(properties)});\n`;
+    });
+
+    codeStr += `console.log('处理结果:', data);`;
+    setCode(codeStr);
+  }, [lf]);
+
+  const runAndDraw = useCallback(() => {
+    if (!code) {
+      message.error('请先生成代码');
+      setHasChart(false);
+      setOutput([]);
+      return;
+    }
+    try {
+      setHasChart(false);
+      setOutput([]);
+
+      const sandbox = {
+        console: {
+          log: (...args: any[]) => {
+            logger.info('Sandbox console log received args:', args);
+
+            let dataArray: number[] | null = null;
+            for (const arg of args) {
+              if (Array.isArray(arg)) {
+                dataArray = arg;
+                logger.info('Found array data in console log arguments.', { data: dataArray });
+                break;
+              }
+            }
+
+            if (dataArray && dataArray.length > 0) {
+              setOutput(dataArray);
+              setHasChart(true);
+              logger.info('Output data set, hasChart set to true.');
+            } else {
+              logger.warn('No valid array data found in console log arguments, cannot plot chart.', { argsReceived: args });
+              setOutput([]);
+              setHasChart(false);
+            }
+          }
+        }
+      };
+      const fn = new Function('console', 'processNode', code);
+      if (typeof processNode === 'function') {
+         fn(sandbox.console, processNode);
+         logger.info('Code executed in sandbox.');
+      } else {
+         logger.error('processNode function is not available in this scope.');
+         message.error('运行失败：processNode 函数未定义');
+         setHasChart(false);
       }
-    }, 0);
-  };
+    } catch (error: unknown) {
+      setHasChart(false);
+      setOutput([]);
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      logger.error('Code execution failed:', { error: errorMessage });
+      message.error('运行失败：' + errorMessage);
+    }
+  }, [code]);
 
   return (
-    <div>
-      <button onClick={handleAddInputNode} style={{ marginBottom: 16, marginRight: 8 }}>添加数据输入节点</button>
-      <button onClick={handleAddSinNode} style={{ marginBottom: 16, marginRight: 8 }}>添加sin函数节点</button>
-      <button onClick={handleAddCurveNode} style={{ marginBottom: 16, marginRight: 8 }}>添加曲线输出节点</button>
-      <button onClick={generateCode} style={{ marginBottom: 16, background: '#222', color: '#fff', marginRight: 8 }}>生成代码</button>
-      <button onClick={runAndDraw} style={{ marginBottom: 16, background: '#fa8c16', color: '#fff' }}>运行并绘图</button>
-      <div style={{ width: 600, height: '500px', border: '1px solid #eee', marginTop: 8, background: '#fff' }} ref={containerRef}></div>
-      {code && (
-        <div style={{ marginTop: 24 }}>
-          <h3>自动生成的JavaScript代码：</h3>
-          <pre style={{ background: '#f6f8fa', padding: 16, borderRadius: 8 }}>{code}</pre>
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>LogicFlow 低代码平台</h1>
+        <div className={styles.toolbar}>
+          <Button type="primary" icon={<CodeOutlined />} onClick={generateCode}>
+            生成代码
+          </Button>
+          <Button type="primary" icon={<PlayCircleOutlined />} onClick={runAndDraw}>
+            运行
+          </Button>
+          <Tooltip title="使用帮助">
+            <QuestionCircleOutlined className={styles.helpButton} onClick={() => setShowHelp(true)} />
+          </Tooltip>
         </div>
-      )}
-      <div style={{ width: 600, height: 320, margin: '32px auto 0', background: '#fff', borderRadius: 8 }} ref={chartRef}></div>
+      </header>
+
+      <div className={styles.content}>
+        <aside className={styles.sidebar}>
+          <div className={styles.nodeList}>
+            {Object.entries(NODE_CONFIGS).map(([type, config]) => (
+              <div
+                key={type}
+                className={`${styles.nodeItem} ${selectedNode === type ? styles.active : ''}`}
+                onClick={() => handleAddNode(type as NodeType)}
+              >
+                {config.text}
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <main className={styles.editor}>
+          <div ref={containerRef} className={styles.canvas} />
+          <div ref={chartRef} className={styles.preview} style={{ display: hasChart ? 'block' : 'none' }}/>
+          {code && (
+            <div className={styles.codePanel}>
+              <div className={styles.codeHeader}>
+                <h3 className={styles.codeTitle}>生成的代码</h3>
+              </div>
+              <pre className={styles.codeContent}>{code}</pre>
+            </div>
+          )}
+        </main>
+      </div>
+
+      <HelpModal visible={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 };

@@ -1,54 +1,86 @@
-# React + TypeScript + Vite
+# LogicFlow 低代码平台
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+基于 LogicFlow 和 React 的低代码平台，支持可视化流程编排和代码生成。
 
-Currently, two official plugins are available:
+## 功能特点
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 可视化流程编排
+- 支持数据输入、函数处理和曲线输出节点
+- 自动生成 JavaScript 代码
+- 实时预览运行结果
+- 使用 ECharts 绘制数据可视化图表
 
-## Expanding the ESLint configuration
+## 技术栈
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React 19
+- TypeScript
+- LogicFlow
+- Ant Design
+- ECharts
+- Vite
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 开发环境要求
+
+- Node.js >= 18
+- pnpm >= 8
+
+## 快速开始
+
+1. 安装依赖：
+
+```bash
+pnpm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. 启动开发服务器：
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+pnpm dev
 ```
+
+3. 构建生产版本：
+
+```bash
+pnpm build
+```
+
+## 项目结构
+
+```
+logicflow-lowcode/
+├── src/
+│   ├── components/     # 组件目录
+│   ├── assets/        # 静态资源
+│   ├── App.tsx        # 应用入口
+│   └── main.tsx       # 主入口文件
+├── public/            # 公共资源
+└── package.json       # 项目配置
+```
+
+## 使用说明
+
+1. 点击"添加数据输入节点"按钮添加输入节点
+2. 点击"添加sin函数节点"按钮添加函数处理节点
+3. 点击"添加曲线输出节点"按钮添加输出节点
+4. 点击节点可以配置参数
+5. 点击"生成代码"按钮生成对应的 JavaScript 代码
+6. 点击"运行并绘图"按钮执行代码并显示结果
+
+## 开发指南
+
+- 使用 `pnpm lint` 运行代码检查
+- 使用 `pnpm format` 格式化代码
+- 使用 `pnpm test` 运行测试
+- 使用 `pnpm coverage` 生成测试覆盖率报告
+
+## 贡献指南
+
+1. Fork 本仓库
+2. 创建特性分支
+3. 提交更改
+4. 推送到分支
+5. 创建 Pull Request
+
+## 许可证
+
+MIT
